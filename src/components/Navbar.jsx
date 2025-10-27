@@ -75,7 +75,7 @@ export default function CustomNavbar () {
                 <Button
                   variant='light'
                   as={Link}
-                  to='/signup'
+                  to='/register'
                   className='fw-bold d-flex align-items-center'
                 >
                   <FaUserPlus className='me-1' /> Signup

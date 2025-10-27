@@ -14,7 +14,7 @@ import LandingPage from './pages/LandingPage'
 import Services from './components/Services'
 import Blog from './components/Blog'
 import Login from './pages/Login'
-import Signup from './pages/Siignup'
+import Register from './pages/Register'
 import Appointments from './components/Appointments'
 
 // Admin Pages
@@ -57,7 +57,7 @@ function AppContent () {
         <Route path='/services' element={<Services />} />
         <Route path='/blog' element={<Blog />} />
         <Route path='/login' element={<Login />} />
-        <Route path='/signup' element={<Signup />} />
+        <Route path='/register' element={<Register/>} />
         {/* Protected user route */}
         <Route
           path='/appointments'
