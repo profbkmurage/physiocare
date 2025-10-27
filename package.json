@@ -1,0 +1,46 @@
+{
+  "name": "temp",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tiptap/extension-color": "^3.8.0",
+    "@tiptap/extension-highlight": "^3.8.0",
+    "@tiptap/extension-image": "^3.8.0",
+    "@tiptap/extension-link": "^3.8.0",
+    "@tiptap/extension-placeholder": "^3.8.0",
+    "@tiptap/extension-text-align": "^3.8.0",
+    "@tiptap/extension-text-style": "^3.8.0",
+    "@tiptap/extension-underline": "^3.8.0",
+    "@tiptap/react": "^3.8.0",
+    "@tiptap/starter-kit": "^3.8.0",
+    "bootstrap": "^5.3.8",
+    "dayjs": "^1.11.18",
+    "dompurify": "^3.3.0",
+    "firebase": "^12.4.0",
+    "react": "^19.0.0",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "react-quill-new": "^3.6.0",
+    "react-router-dom": "^7.9.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.19.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "^15.14.0",
+    "vite": "^6.1.0"
+  }
+}
