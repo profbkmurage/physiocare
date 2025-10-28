@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Form, Button, Container, Alert, Card, Row, Col } from 'react-bootstrap'
-import { FaUserCircle, FaEnvelope, FaLock } from 'react-icons/fa'
+import { FaUserCircle, FaEnvelope, FaLock, FaGoogle } from 'react-icons/fa'
 import { auth, db } from '../utilities/firebase'
-import { signInWithEmailAndPassword } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
+} from 'firebase/auth'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 export default function Login () {
   const [email, setEmail] = useState('')
@@ -13,12 +17,12 @@ export default function Login () {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  // Email/Password login
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      // Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -26,23 +30,51 @@ export default function Login () {
       )
       const user = userCredential.user
 
-      // Fetch user role from Firestore
       const userRef = doc(db, 'users', user.uid)
       const userSnap = await getDoc(userRef)
 
       if (userSnap.exists()) {
-        const userData = userSnap.data()
-        const role = userData.role
-
-        if (role === 'admin' || role === 'superadmin') {
-          navigate('/admin/dashboard')
-        } else {
-          navigate('/appointments')
-        }
+        const role = userSnap.data().role
+        role === 'admin' || role === 'superadmin'
+          ? navigate('/admin/dashboard')
+          : navigate('/appointments')
       } else {
-        // No role found — treat as normal user
         navigate('/appointments')
       }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Google Login
+  const handleGoogleLogin = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      const provider = new GoogleAuthProvider()
+      const result = await signInWithPopup(auth, provider)
+      const user = result.user
+
+      // Check Firestore user data
+      const userRef = doc(db, 'users', user.uid)
+      const userSnap = await getDoc(userRef)
+
+      if (!userSnap.exists()) {
+        // Create new user with default role "user"
+        await setDoc(userRef, {
+          name: user.displayName || '',
+          email: user.email,
+          role: 'user',
+          createdAt: new Date()
+        })
+      }
+
+      const role = userSnap?.data()?.role || 'user'
+      role === 'admin' || role === 'superadmin'
+        ? navigate('/admin/dashboard')
+        : navigate('/appointments')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -57,12 +89,12 @@ export default function Login () {
       style={{ minHeight: '100vh', background: '#e3f2fd' }}
     >
       <Row className='w-100 justify-content-center'>
-        <Col md={6} lg={4}>
+        <Col xs={12} sm={10} md={6} lg={4}>
           <Card className='shadow p-4' style={{ borderRadius: '15px' }}>
             <Card.Body>
               <div className='text-center mb-4'>
                 <FaUserCircle size={60} color='#0d6efd' />
-                <h2 className='mt-2'>Admin / User Login</h2>
+                <h2 className='mt-2'>Login</h2>
                 <p className='text-muted'>Access your account securely</p>
               </div>
 
@@ -105,6 +137,18 @@ export default function Login () {
                   {loading ? 'Logging in...' : 'Login'}
                 </Button>
               </Form>
+
+              <div className='d-grid gap-2 mb-3'>
+                <Button
+                  variant='danger'
+                  size='lg'
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className='d-flex align-items-center justify-content-center'
+                >
+                  <FaGoogle className='me-2' /> Sign in with Google
+                </Button>
+              </div>
 
               <div className='text-center'>
                 <p className='mb-0 text-muted'>

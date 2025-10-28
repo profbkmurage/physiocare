@@ -2,6 +2,14 @@ import { useState } from 'react'
 import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap'
 import { db } from '../utilities/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaWhatsapp,
+  FaMapMarkerAlt,
+  FaEnvelope,
+  FaPhoneAlt
+} from 'react-icons/fa'
 
 export default function Footer () {
   const [name, setName] = useState('')
@@ -35,31 +43,73 @@ export default function Footer () {
       style={{
         background: '#212529',
         color: '#fff',
-        padding: '40px 0'
+        padding: '50px 0 20px 0',
+        fontSize: '0.95rem'
       }}
     >
       <Container>
-        {/* Two main columns: Info + Contact Form */}
-        <Row className='d-flex flex-column flex-md-row justify-content-between align-items-start'>
-          {/* Left Side */}
-          <Col md={4} className='mb-4 mb-md-0'>
-            <h4>PhysioCare — Dr. Jasmine Gatiba</h4>
+        <Row className='gy-4 gx-5'>
+          {/* Left Column: Info + Contact */}
+          <Col xs={12} md={4}>
+            <h4 className='fw-bold mb-3 text-primary'>
+              PhysioCare — Dr. Jasmine Gatiba
+            </h4>
             <p>
-              Your health is our priority. Reach out with any questions or
-              bookings.
+              Helping you regain strength, balance, and confidence. We believe
+              every step toward healing counts.
             </p>
+
+            <div className='mt-3'>
+              <p className='mb-1'>
+                <FaMapMarkerAlt className='me-2 text-primary' /> Gigiri,
+                Nairobi, Kenya
+              </p>
+              <p className='mb-1'>
+                <FaEnvelope className='me-2 text-primary' /> info@physiocare.com
+              </p>
+              <p className='mb-1'>
+                <FaPhoneAlt className='me-2 text-primary' /> +254 758 991 395
+              </p>
+            </div>
+
+            <div className='d-flex gap-3 mt-3'>
+              <a
+                href='https://facebook.com'
+                target='_blank'
+                rel='noopener noreferrer'
+                className='text-light fs-5'
+              >
+                <FaFacebookF />
+              </a>
+              <a
+                href='https://instagram.com'
+                target='_blank'
+                rel='noopener noreferrer'
+                className='text-light fs-5'
+              >
+                <FaInstagram />
+              </a>
+              <a
+                href='https://wa.me/254758991395'
+                target='_blank'
+                rel='noopener noreferrer'
+                className='text-light fs-5'
+              >
+                <FaWhatsapp />
+              </a>
+            </div>
           </Col>
 
-          {/* Right Side (Contact Form) */}
-          <Col md={8}>
-            <h5>Contact Us</h5>
+          {/* Right Column: Contact Form */}
+          <Col xs={12} md={8}>
+            <h5 className='fw-bold mb-3 text-primary'>Contact Us</h5>
             {submitted && (
               <Alert variant='success'>Message sent successfully!</Alert>
             )}
             {error && <Alert variant='danger'>{error}</Alert>}
 
             <Form onSubmit={handleSubmit}>
-              <Row className='gy-2 gx-2'>
+              <Row className='gy-3'>
                 <Col xs={12} md={6}>
                   <Form.Control
                     type='text'
@@ -81,16 +131,21 @@ export default function Footer () {
                 <Col xs={12}>
                   <Form.Control
                     as='textarea'
-                    rows={2}
+                    rows={3}
                     placeholder='Your message'
                     required
                     value={message}
                     onChange={e => setMessage(e.target.value)}
                   />
                 </Col>
-                <Col xs={12} md={12}>
-                  <Button type='submit' variant='primary' className='w-100'>
-                    Send
+                <Col xs={12}>
+                  <Button
+                    type='submit'
+                    variant='primary'
+                    className='w-100 fw-semibold'
+                    style={{ borderRadius: '6px' }}
+                  >
+                    Send Message
                   </Button>
                 </Col>
               </Row>
@@ -98,8 +153,8 @@ export default function Footer () {
           </Col>
         </Row>
 
-        <hr style={{ borderColor: '#495057' }} />
-        <p className='text-center mb-0'>
+        <hr style={{ borderColor: '#495057', marginTop: '40px' }} />
+        <p className='text-center mb-0 small'>
           &copy; {new Date().getFullYear()} PhysioCare. All rights reserved.
         </p>
       </Container>

@@ -26,17 +26,14 @@ export default function Blog () {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
-  // Fetch blogs from Firestore
+  // Fetch blogs
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const blogCollection = collection(db, 'blogs')
-        const blogSnapshot = await getDocs(blogCollection)
-        const blogList = blogSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        setBlogs(blogList)
+        const snapshot = await getDocs(blogCollection)
+        const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        setBlogs(list)
       } catch (err) {
         console.error('Error fetching blogs:', err)
       }
@@ -44,12 +41,10 @@ export default function Blog () {
     fetchBlogs()
   }, [])
 
-  // Handle comment input
   const handleCommentChange = e => {
     setCommentForm({ ...commentForm, [e.target.name]: e.target.value })
   }
 
-  // Submit comment
   const handleCommentSubmit = async blogId => {
     setError('')
     setSubmitted(false)
@@ -75,7 +70,6 @@ export default function Blog () {
     }
   }
 
-  // Handle likes
   const handleLike = async blogId => {
     const blogRef = doc(db, 'blogs', blogId)
     await updateDoc(blogRef, { likes: increment(1) })
@@ -86,7 +80,6 @@ export default function Blog () {
     )
   }
 
-  // Handle share
   const handleShare = blog => {
     if (navigator.share) {
       navigator.share({
@@ -100,10 +93,9 @@ export default function Blog () {
     }
   }
 
-  // Function to limit words for preview
   const getPreview = blog => {
     if (!blog.content) return ''
-    const contentText = blog.content.replace(/<[^>]*>/g, '') // strip HTML
+    const contentText = blog.content.replace(/<[^>]*>/g, '')
     const words = contentText.split(' ')
     const preview = words.slice(0, 50).join(' ')
     return words.length > 50 ? preview + '...' : preview
@@ -112,17 +104,19 @@ export default function Blog () {
   return (
     <>
       <Container className='my-5'>
-        <h2 className='text-center mb-4'>Our Blog</h2>
+        <h2 className='text-center mb-4 fw-bold'>Our Blog</h2>
         <Row className='g-4'>
           {blogs.map(blog =>
             expandedBlogId === null || expandedBlogId === blog.id ? (
               <Col
                 key={blog.id}
+                xs={12}
+                sm={12}
                 md={expandedBlogId ? 12 : 6}
                 lg={expandedBlogId ? 12 : 4}
               >
                 <Card
-                  className={`shadow-sm blog-card ${
+                  className={`shadow-sm blog-card border-0 ${
                     expandedBlogId === blog.id ? 'expanded' : ''
                   }`}
                 >
@@ -138,9 +132,10 @@ export default function Blog () {
                   )}
                   <Card.Body className='d-flex flex-column justify-content-between'>
                     <div>
-                      <Card.Title className='fw-bold text-center'>
+                      <Card.Title className='fw-bold text-center mb-3'>
                         {blog.title}
                       </Card.Title>
+
                       <Card.Text
                         className='blog-preview-text'
                         dangerouslySetInnerHTML={{
@@ -155,7 +150,7 @@ export default function Blog () {
 
                     {expandedBlogId === blog.id ? (
                       <>
-                        <div className='mt-3 d-flex gap-2'>
+                        <div className='mt-3 d-flex gap-2 flex-wrap justify-content-center'>
                           <Button
                             variant='danger'
                             onClick={() => handleLike(blog.id)}
@@ -166,7 +161,7 @@ export default function Blog () {
                             variant='primary'
                             onClick={() => handleShare(blog)}
                           >
-                            <FaShareAlt /> {blog.shares || 0}
+                            <FaShareAlt /> Share
                           </Button>
                         </div>
 
@@ -214,7 +209,7 @@ export default function Blog () {
                               required
                             />
                           </Form.Group>
-                          <div className='d-flex gap-2'>
+                          <div className='d-flex gap-2 justify-content-center flex-wrap'>
                             <Button type='submit' variant='primary'>
                               Submit Comment
                             </Button>

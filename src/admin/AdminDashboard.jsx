@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-// import Sidebar from './components/Sidebar'
 import {
   Row,
   Col,
@@ -14,37 +13,35 @@ import {
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../utilities/firebase'
 import dayjs from 'dayjs'
+import { FaWhatsapp, FaPhone } from 'react-icons/fa'
 
 export default function AdminDashboard () {
   const { user } = useAuth()
+  const [userName, setUserName] = useState('Admin')
   const [appointments, setAppointments] = useState([])
-  const [users, setUsers] = useState([])
   const [filtered, setFiltered] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [userName, setUserName] = useState('Admin')
 
-  // ✅ Fetch all users
+  // ✅ Fetch users to get the logged-in admin name
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUserName = async () => {
+      if (!user) return
       try {
         const snapshot = await getDocs(collection(db, 'users'))
-        const list = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        setUsers(list)
-
-        const admin = list.find(
-          u => u.email === user?.email || u.userId === user?.uid
+        const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        const currentAdmin = list.find(
+          u => u.email === user.email || u.userId === user.uid
         )
-        if (admin) setUserName(admin.userName || admin.name || 'Admin')
+        if (currentAdmin) {
+          setUserName(currentAdmin.userName || currentAdmin.name || 'Admin')
+        }
       } catch (err) {
-        console.error('Error fetching users:', err)
+        console.error('Error fetching admin name:', err)
       }
     }
-    if (user) fetchUsers()
+    fetchUserName()
   }, [user])
 
   // ✅ Fetch appointments
@@ -54,34 +51,9 @@ export default function AdminDashboard () {
         const snapshot = await getDocs(collection(db, 'appointments'))
         const list = snapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(
-            appt =>
-              appt.status?.toLowerCase() === 'approved' ||
-              appt.status?.toLowerCase() === 'rescheduled'
+          .filter(appt =>
+            ['approved', 'rescheduled'].includes(appt.status?.toLowerCase())
           )
-          .map(appt => {
-            const matchedUser = users.find(
-              u =>
-                u.phone === appt.phone ||
-                u.phoneNumber === appt.phone ||
-                u.phone === appt.phoneNumber ||
-                u.userId === appt.userId
-            )
-            return {
-              ...appt,
-              clientName:
-                appt.clientName ||
-                matchedUser?.userName ||
-                matchedUser?.name ||
-                'Unnamed Client',
-              phone:
-                appt.phone ||
-                appt.phoneNumber ||
-                matchedUser?.phone ||
-                matchedUser?.phoneNumber ||
-                ''
-            }
-          })
           .sort(
             (a, b) =>
               dayjs(a.dateTime || `${a.date} ${a.time}`).unix() -
@@ -95,8 +67,8 @@ export default function AdminDashboard () {
         setLoading(false)
       }
     }
-    if (users.length > 0) fetchAppointments()
-  }, [users])
+    fetchAppointments()
+  }, [])
 
   // ✅ Filter + Search
   useEffect(() => {
@@ -110,15 +82,15 @@ export default function AdminDashboard () {
       const lower = search.toLowerCase()
       temp = temp.filter(
         appt =>
-          appt.clientName?.toLowerCase().includes(lower) ||
+          appt.patientName?.toLowerCase().includes(lower) ||
           appt.service?.toLowerCase().includes(lower) ||
-          appt.phone?.toLowerCase().includes(lower)
+          appt.whatsapp?.toLowerCase().includes(lower)
       )
     }
     setFiltered(temp)
   }, [search, statusFilter, appointments])
 
-  // ✅ Format phone number
+  // ✅ Format phone number for WhatsApp / call
   const formatPhoneNumber = phone => {
     if (!phone) return ''
     let cleaned = phone.replace(/\D/g, '')
@@ -129,14 +101,15 @@ export default function AdminDashboard () {
 
   // ✅ WhatsApp engage
   const handleEngage = appt => {
-    if (!appt.phone) return alert('No phone number found for this client.')
-    const cleaned = formatPhoneNumber(appt.phone)
+    if (!appt.whatsapp)
+      return alert('No WhatsApp number found for this client.')
+    const cleaned = formatPhoneNumber(appt.whatsapp)
     const message = encodeURIComponent(
       `Hello ${
-        appt.clientName
-      }, this is ${userName} from our clinic. Your appointment for ${
+        appt.patientName
+      }, this is ${userName} from our Physiocare. We are reaching out for your appointment for ${
         appt.service
-      } on ${dayjs(appt.date).format('DD MMM YYYY')} at ${appt.time}.`
+      } that is set on ${dayjs(appt.date).format('DD MMM YYYY')} at ${appt.time}.`
     )
     window.open(
       `https://wa.me/${cleaned}?text=${message}`,
@@ -147,18 +120,15 @@ export default function AdminDashboard () {
 
   // ✅ Call client
   const handleCall = appt => {
-    if (!appt.phone) return alert('No phone number available for this client.')
-    const cleaned = formatPhoneNumber(appt.phone)
+    if (!appt.whatsapp) return alert('No phone number available.')
+    const cleaned = formatPhoneNumber(appt.whatsapp)
     window.location.href = `tel:+${cleaned}`
   }
 
   return (
     <div className='d-flex' style={{ minHeight: '100vh' }}>
-      
-      {/* Main Content */}
       <div
         style={{
-          
           flex: 1,
           padding: '20px',
           backgroundColor: '#f8f9fa',
@@ -171,8 +141,8 @@ export default function AdminDashboard () {
             <Col md={7} className='text-md-start text-center mb-3 mb-md-0'>
               <h1 className='fw-bold'>Welcome, {userName}!</h1>
               <p className='lead'>
-                Here’s your dashboard where you can manage clients,
-                appointments, blogs, and more.
+                Here’s your dashboard where you can manage clients and
+                appointments.
               </p>
             </Col>
             <Col md={5} className='text-center'>
@@ -227,12 +197,12 @@ export default function AdminDashboard () {
                   <Card className='shadow-sm h-100'>
                     <Card.Body>
                       <Card.Title className='fw-bold'>
-                        {appt.clientName}
+                        {appt.patientName}
                       </Card.Title>
                       <Card.Text>
                         <strong>Phone:</strong>{' '}
-                        {appt.phone ? (
-                          <a href={`tel:${appt.phone}`}>{appt.phone}</a>
+                        {appt.whatsapp ? (
+                          <a href={`tel:${appt.whatsapp}`}>{appt.whatsapp}</a>
                         ) : (
                           'N/A'
                         )}
@@ -261,14 +231,14 @@ export default function AdminDashboard () {
                           size='sm'
                           onClick={() => handleEngage(appt)}
                         >
-                          Engage (WhatsApp)
+                          <FaWhatsapp className='me-1' /> Engage
                         </Button>
                         <Button
                           variant='outline-primary'
                           size='sm'
                           onClick={() => handleCall(appt)}
                         >
-                          Call
+                          <FaPhone className='me-1' /> Call
                         </Button>
                       </div>
                     </Card.Body>

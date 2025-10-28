@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
   Container,
-  Card,
   Button,
   Modal,
   Form,
@@ -9,7 +8,8 @@ import {
   Col,
   Badge,
   Spinner,
-  Alert
+  Alert,
+  Accordion
 } from 'react-bootstrap'
 import { db } from '../../utilities/firebase'
 import {
@@ -40,19 +40,16 @@ export default function AppointmentsAdmin () {
   const [newTime, setNewTime] = useState('')
   const [comment, setComment] = useState('')
 
-  // Fetch all appointments
+  // Fetch appointments
   useEffect(() => {
     const fetchAppointments = async () => {
       setLoading(true)
       try {
         const snapshot = await getDocs(collection(db, 'appointments'))
-        const data = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
         setAppointments(data)
       } catch (err) {
-        console.error('Error fetching appointments:', err)
+        console.error(err)
         setError('Failed to load appointments.')
       } finally {
         setLoading(false)
@@ -61,7 +58,7 @@ export default function AppointmentsAdmin () {
     fetchAppointments()
   }, [])
 
-  // Update appointment in Firestore
+  // Update Firestore and local state
   const updateAppointment = async (id, updates) => {
     try {
       const ref = doc(db, 'appointments', id)
@@ -70,17 +67,15 @@ export default function AppointmentsAdmin () {
         prev.map(appt => (appt.id === id ? { ...appt, ...updates } : appt))
       )
     } catch (err) {
-      console.error('Error updating appointment:', err)
+      console.error(err)
       setError('Action failed. Try again.')
     }
   }
 
-  // Approve appointment
   const handleApprove = id => {
     updateAppointment(id, { status: 'Approved', adminComment: 'Approved ✅' })
   }
 
-  // Revoke appointment
   const handleRevoke = id => {
     if (!window.confirm('Are you sure you want to revoke this appointment?'))
       return
@@ -90,7 +85,6 @@ export default function AppointmentsAdmin () {
     })
   }
 
-  // Reschedule appointment
   const handleReschedule = appt => {
     setSelectedAppt(appt)
     setShowReschedule(true)
@@ -99,17 +93,16 @@ export default function AppointmentsAdmin () {
   const submitReschedule = async () => {
     if (!newDate || !newTime) return alert('Please select date and time.')
     await updateAppointment(selectedAppt.id, {
-      status: 'Rescheduled',
+      status: 'Pending Reschedule',
       suggestedDate: newDate,
       suggestedTime: newTime,
-      adminComment: 'Suggested new date/time'
+      adminComment: 'Suggested new date/time, awaiting client confirmation'
     })
     setShowReschedule(false)
     setNewDate('')
     setNewTime('')
   }
 
-  // Add comment
   const handleComment = appt => {
     setSelectedAppt(appt)
     setShowComment(true)
@@ -137,94 +130,109 @@ export default function AppointmentsAdmin () {
       ) : appointments.length === 0 ? (
         <p className='text-center text-muted'>No appointments found.</p>
       ) : (
-        appointments
-          .sort((a, b) => b.createdAt - a.createdAt)
-          .map(appt => (
-            <Card key={appt.id} className='mb-3 shadow-sm'>
-              <Card.Body>
-                <Row>
-                  <Col md={8}>
-                    <Card.Title className='mb-2'>
-                      <strong>{appt.service}</strong> —{' '}
-                      <span className='text-muted'>{appt.userEmail}</span>
-                    </Card.Title>
-                    <Card.Text className='mb-1'>
-                      <FaCalendarAlt className='me-2 text-muted' />
-                      {appt.date} <FaClock className='ms-3 me-2 text-muted' />
-                      {appt.time}
-                    </Card.Text>
-                    <Card.Text>
-                      <strong>Status:</strong>{' '}
-                      <Badge
-                        bg={
-                          appt.status === 'Approved'
-                            ? 'success'
-                            : appt.status === 'Pending Approval'
-                            ? 'warning'
-                            : appt.status === 'Rescheduled'
-                            ? 'info'
-                            : appt.status === 'Revoked'
-                            ? 'danger'
-                            : 'secondary'
-                        }
-                      >
-                        {appt.status}
-                      </Badge>
-                    </Card.Text>
-                    {appt.adminComment && (
-                      <Card.Text className='text-muted'>
-                        <FaComments className='me-1' />
-                        <em>{appt.adminComment}</em>
-                      </Card.Text>
-                    )}
-                    {appt.suggestedDate && (
-                      <Card.Text>
-                        <strong>Suggested New Date:</strong>{' '}
-                        {appt.suggestedDate} at {appt.suggestedTime}
-                      </Card.Text>
-                    )}
-                  </Col>
-                  <Col
-                    md={4}
-                    className='d-flex align-items-center justify-content-end flex-wrap gap-2'
-                  >
-                    {appt.status !== 'Approved' && appt.status !== 'Revoked' && (
-                      <Button
-                        variant='success'
-                        size='sm'
-                        onClick={() => handleApprove(appt.id)}
-                      >
-                        <FaCheckCircle className='me-1' /> Approve
-                      </Button>
-                    )}
-                    {appt.status !== 'Revoked' && (
-                      <Button
-                        variant='warning'
-                        size='sm'
-                        onClick={() => handleReschedule(appt)}
-                      >
-                        <FaSyncAlt className='me-1' /> Reschedule
-                      </Button>
-                    )}
-                    <Button
-                      variant='info'
-                      size='sm'
-                      onClick={() => handleComment(appt)}
+        <Accordion defaultActiveKey='0'>
+          {appointments
+            .sort(
+              (a, b) =>
+                (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+            )
+            .map((appt, idx) => (
+              <Accordion.Item eventKey={idx.toString()} key={appt.id}>
+                <Accordion.Header>
+                  <div className='d-flex flex-column flex-md-row w-100 justify-content-between'>
+                    <div>
+                      <strong>{appt.patientName}</strong> —{' '}
+                      <span className='text-muted'>{appt.whatsapp}</span>
+                      <br />
+                      <strong>Service:</strong> {appt.service}
+                    </div>
+                    <Badge
+                      bg={
+                        appt.status === 'Approved'
+                          ? 'success'
+                          : appt.status === 'Pending Approval'
+                          ? 'warning'
+                          : appt.status === 'Pending Reschedule'
+                          ? 'info'
+                          : appt.status === 'Revoked'
+                          ? 'danger'
+                          : 'secondary'
+                      }
+                      className='ms-2 mt-1 mt-md-0'
                     >
-                      <FaComments className='me-1' /> Comment
-                    </Button>
-                    <Button
-                      variant='danger'
-                      size='sm'
-                      onClick={() => handleRevoke(appt.id)}
+                      {appt.status}
+                    </Badge>
+                  </div>
+                </Accordion.Header>
+                <Accordion.Body>
+                  <Row>
+                    <Col md={8}>
+                      <p>
+                        <FaCalendarAlt className='me-2 text-muted' />
+                        {appt.date} <FaClock className='ms-3 me-2 text-muted' />
+                        {appt.time}
+                      </p>
+                      {appt.previousDate && (
+                        <p>
+                          <strong>Previous:</strong> {appt.previousDate} at{' '}
+                          {appt.previousTime}
+                        </p>
+                      )}
+                      {appt.suggestedDate && (
+                        <p>
+                          <strong>Suggested:</strong> {appt.suggestedDate} at{' '}
+                          {appt.suggestedTime}
+                        </p>
+                      )}
+                      {appt.adminComment && (
+                        <p className='text-muted'>
+                          <FaComments className='me-1' />
+                          {appt.adminComment}
+                        </p>
+                      )}
+                    </Col>
+                    <Col
+                      md={4}
+                      className='d-flex flex-wrap gap-2 justify-content-md-end mt-3 mt-md-0'
                     >
-                      <FaTimesCircle className='me-1' /> Revoke
-                    </Button>
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          ))
+                      {appt.status !== 'Approved' && appt.status !== 'Revoked' && (
+                        <Button
+                          variant='success'
+                          size='sm'
+                          onClick={() => handleApprove(appt.id)}
+                        >
+                          <FaCheckCircle className='me-1' /> Approve
+                        </Button>
+                      )}
+                      {appt.status !== 'Revoked' && (
+                        <Button
+                          variant='warning'
+                          size='sm'
+                          onClick={() => handleReschedule(appt)}
+                        >
+                          <FaSyncAlt className='me-1' /> Reschedule
+                        </Button>
+                      )}
+                      <Button
+                        variant='info'
+                        size='sm'
+                        onClick={() => handleComment(appt)}
+                      >
+                        <FaComments className='me-1' /> Comment
+                      </Button>
+                      <Button
+                        variant='danger'
+                        size='sm'
+                        onClick={() => handleRevoke(appt.id)}
+                      >
+                        <FaTimesCircle className='me-1' /> Revoke
+                      </Button>
+                    </Col>
+                  </Row>
+                </Accordion.Body>
+              </Accordion.Item>
+            ))}
+        </Accordion>
       )}
 
       {/* Modal: Reschedule */}
@@ -261,7 +269,7 @@ export default function AppointmentsAdmin () {
             Close
           </Button>
           <Button variant='primary' onClick={submitReschedule}>
-            Save Changes
+            Suggest New Time
           </Button>
         </Modal.Footer>
       </Modal>
