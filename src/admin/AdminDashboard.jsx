@@ -8,12 +8,20 @@ import {
   Button,
   Spinner,
   Form,
-  InputGroup
+  InputGroup,
+  Container
 } from 'react-bootstrap'
-import { collection, getDocs } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  doc,
+  query,
+  orderBy
+} from 'firebase/firestore'
 import { db } from '../utilities/firebase'
 import dayjs from 'dayjs'
-import { FaWhatsapp, FaPhone } from 'react-icons/fa'
+import { FaWhatsapp, FaPhone, FaHeart } from 'react-icons/fa'
 
 export default function AdminDashboard () {
   const { user } = useAuth()
@@ -23,8 +31,10 @@ export default function AdminDashboard () {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [testimonials, setTestimonials] = useState([])
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true)
 
-  // ✅ Fetch users to get the logged-in admin name
+  // ✅ Fetch admin name
   useEffect(() => {
     const fetchUserName = async () => {
       if (!user) return
@@ -99,7 +109,6 @@ export default function AdminDashboard () {
     return cleaned
   }
 
-  // ✅ WhatsApp engage
   const handleEngage = appt => {
     if (!appt.whatsapp)
       return alert('No WhatsApp number found for this client.')
@@ -107,9 +116,9 @@ export default function AdminDashboard () {
     const message = encodeURIComponent(
       `Hello ${
         appt.patientName
-      }, this is ${userName} from our Physiocare. We are reaching out for your appointment for ${
+      }, this is ${userName} from PhysioCare. We are reaching out for your appointment for ${
         appt.service
-      } that is set on ${dayjs(appt.date).format('DD MMM YYYY')} at ${appt.time}.`
+      } set on ${dayjs(appt.date).format('DD MMM YYYY')} at ${appt.time}.`
     )
     window.open(
       `https://wa.me/${cleaned}?text=${message}`,
@@ -118,15 +127,54 @@ export default function AdminDashboard () {
     )
   }
 
-  // ✅ Call client
   const handleCall = appt => {
     if (!appt.whatsapp) return alert('No phone number available.')
     const cleaned = formatPhoneNumber(appt.whatsapp)
     window.location.href = `tel:+${cleaned}`
   }
 
+  // ✅ Fetch Testimonials
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const q = query(
+          collection(db, 'testimonials'),
+          orderBy('createdAt', 'desc')
+        )
+        const snapshot = await getDocs(q)
+        const list = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        setTestimonials(list)
+      } catch (err) {
+        console.error('Error fetching testimonials:', err)
+      } finally {
+        setLoadingTestimonials(false)
+      }
+    }
+    fetchTestimonials()
+  }, [])
+
+  // ✅ Toggle status
+  const toggleStatus = async (id, currentStatus) => {
+    try {
+      const newStatus =
+        currentStatus?.toLowerCase() === 'approved' ? 'pending' : 'approved'
+      await updateDoc(doc(db, 'testimonials', id), { status: newStatus })
+      setTestimonials(prev =>
+        prev.map(t => (t.id === id ? { ...t, status: newStatus } : t))
+      )
+    } catch (err) {
+      console.error('Error updating status:', err)
+    }
+  }
+
   return (
-    <div className='d-flex' style={{ minHeight: '100vh' }}>
+    <div
+      className='d-flex flex-column flex-lg-row'
+      style={{ minHeight: '100vh' }}
+    >
       <div
         style={{
           flex: 1,
@@ -141,8 +189,7 @@ export default function AdminDashboard () {
             <Col md={7} className='text-md-start text-center mb-3 mb-md-0'>
               <h1 className='fw-bold'>Welcome, {userName}!</h1>
               <p className='lead'>
-                Here’s your dashboard where you can manage clients and
-                appointments.
+                Here’s your dashboard to manage appointments and testimonials.
               </p>
             </Col>
             <Col md={5} className='text-center'>
@@ -180,7 +227,7 @@ export default function AdminDashboard () {
             </Form.Select>
           </div>
 
-          {/* Appointments */}
+          {/* Appointments Section */}
           <h3 className='mb-4 text-center'>Upcoming Appointments</h3>
           {loading ? (
             <div className='text-center py-5'>
@@ -247,6 +294,64 @@ export default function AdminDashboard () {
               ))}
             </Row>
           )}
+
+          {/* Testimonials Section */}
+          <Container className='my-5'>
+            <h3 className='text-center mb-4'>Client Testimonials</h3>
+            {loadingTestimonials ? (
+              <div className='text-center py-4'>
+                <Spinner animation='border' variant='primary' />
+              </div>
+            ) : testimonials.length === 0 ? (
+              <p className='text-center text-muted'>No testimonials found.</p>
+            ) : (
+              <Row className='g-4'>
+                {testimonials.map(t => (
+                  <Col key={t.id} md={6} lg={4}>
+                    <Card className='shadow-sm h-100 position-relative'>
+                      <div className='text-center mt-3'>
+                        <FaHeart size={28} color='#d63384' className='mb-2' />
+                      </div>
+                      <Card.Body>
+                        <Card.Title className='fw-bold text-primary'>
+                          {t.name}
+                        </Card.Title>
+                        <Card.Subtitle className='mb-2 text-muted'>
+                          {t.type}
+                        </Card.Subtitle>
+                        <Card.Text style={{ minHeight: '90px' }}>
+                          {t.message}
+                        </Card.Text>
+                        <small className='text-muted d-block text-end'>
+                          {t.createdAt
+                            ? dayjs(t.createdAt.toDate()).format(
+                                'DD MMM YYYY, hh:mm A'
+                              )
+                            : '—'}
+                        </small>
+                      </Card.Body>
+                      <Card.Footer className='bg-light text-center'>
+                        <Button
+                          variant={
+                            t.status?.toLowerCase() === 'approved'
+                              ? 'outline-danger'
+                              : 'outline-success'
+                          }
+                          size='sm'
+                          onClick={() => toggleStatus(t.id, t.status)}
+                        >
+                          {t.status?.toLowerCase() === 'approved'
+                            ? 'Revoke'
+                            : 'Approve'}
+                        </Button>
+                      </Card.Footer>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            )}
+          </Container>
+
           <Outlet />
         </div>
       </div>
