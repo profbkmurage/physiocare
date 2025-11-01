@@ -39,7 +39,8 @@ export default function Footer () {
   }
 
   return (
-    <footer
+    <footer id = 'footer-section'
+
       style={{
         background: '#212529',
         color: '#fff',

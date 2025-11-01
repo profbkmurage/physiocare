@@ -106,7 +106,7 @@ export default function CustomNavbar () {
                 <Button
                   variant='light'
                   as={Link}
-                  to='/register'
+                  to='/services'
                   className='fw-bold d-flex align-items-center mb-2 mb-lg-0'
                   style={{ whiteSpace: 'nowrap' }}
                 >

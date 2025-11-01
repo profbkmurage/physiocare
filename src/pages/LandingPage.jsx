@@ -21,7 +21,7 @@ import { FaHeartPulse } from 'react-icons/fa6'
 import dayjs from 'dayjs'
 import Footer from '../components/Footer'
 
-// Example images — replace with real physiotherapy photos
+// Example images — replace with your real physiotherapy photos
 import image1 from '../assets/bk.jpeg'
 import image2 from '../assets/bk2.jpeg'
 import image3 from '../assets/bk.jpeg'
@@ -31,8 +31,7 @@ export default function LandingPage () {
   const [testimonials, setTestimonials] = useState([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
-
-  // Fetch approved testimonials live
+  // ✅ Fetch approved testimonials live from Firestore
   useEffect(() => {
     const q = query(
       collection(db, 'testimonials'),
@@ -50,6 +49,7 @@ export default function LandingPage () {
     return () => unsub()
   }, [])
 
+  // ✅ Function to trim long text for testimonial previews
   const trimText = (text, maxWords = 40) => {
     const words = text.split(' ')
     if (words.length > maxWords) {
@@ -61,80 +61,64 @@ export default function LandingPage () {
     return { short: text, trimmed: false }
   }
 
+  // ✅ Smooth scroll to footer section
+  const scrollToFooter = () => {
+    const footer = document.getElementById('footer-section')
+    if (footer) footer.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <div>
-      {/* Hero Carousel */}
+      {/* ================= HERO CAROUSEL ================= */}
       <Carousel fade interval={3000}>
-        <Carousel.Item>
-          <img
-            className='d-block w-100'
-            src={image1}
-            alt='Patient care 1'
-            style={{ maxHeight: '500px', objectFit: 'cover' }}
-          />
-          <Carousel.Caption>
-            <h2>Expert Care for Every Patient</h2>
-            <p>Personalized physiotherapy for better recovery and health.</p>
-            <Button as={Link} to='/book' variant='light'>
-              Book Now
-            </Button>
-          </Carousel.Caption>
-        </Carousel.Item>
-
-        <Carousel.Item>
-          <img
-            className='d-block w-100'
-            src={image2}
-            alt='Patient care 2'
-            style={{ maxHeight: '500px', objectFit: 'cover' }}
-          />
-          <Carousel.Caption>
-            <h2>Rehabilitation Programs</h2>
-            <p>Recover faster with customized rehabilitation plans.</p>
-            <Button as={Link} to='/book' variant='light'>
-              Book Now
-            </Button>
-          </Carousel.Caption>
-        </Carousel.Item>
-
-        <Carousel.Item>
-          <img
-            className='d-block w-100'
-            src={image3}
-            alt='Patient care 3'
-            style={{ maxHeight: '500px', objectFit: 'cover' }}
-          />
-          <Carousel.Caption>
-            <h2>Preventive Physiotherapy</h2>
-            <p>Stay active and healthy with our preventive programs.</p>
-            <Button as={Link} to='/book' variant='light'>
-              Book Now
-            </Button>
-          </Carousel.Caption>
-        </Carousel.Item>
-
-        <Carousel.Item>
-          <img
-            className='d-block w-100'
-            src={image4}
-            alt='Patient care 4'
-            style={{ maxHeight: '500px', objectFit: 'cover' }}
-          />
-          <Carousel.Caption>
-            <h2>Holistic Patient Care</h2>
-            <p>Focused on improving your mobility and overall wellbeing.</p>
-            <Button as={Link} to='/book' variant='light'>
-              Book Now
-            </Button>
-          </Carousel.Caption>
-        </Carousel.Item>
+        {[image1, image2, image3, image4].map((img, index) => {
+          const captions = [
+            {
+              title: 'Expert Care for Every Patient',
+              text: 'Personalized physiotherapy for better recovery and health.'
+            },
+            {
+              title: 'Rehabilitation Programs',
+              text: 'Recover faster with customized rehabilitation plans.'
+            },
+            {
+              title: 'Preventive Physiotherapy',
+              text: 'Stay active and healthy with our preventive programs.'
+            },
+            {
+              title: 'Holistic Patient Care',
+              text: 'Focused on improving your mobility and overall wellbeing.'
+            }
+          ]
+          return (
+            <Carousel.Item key={index}>
+              <img
+                className='d-block w-100'
+                src={img}
+                alt={`slide-${index}`}
+                style={{
+                  maxHeight: '500px',
+                  objectFit: 'cover',
+                  filter: 'brightness(85%)'
+                }}
+              />
+              <Carousel.Caption className='bg-dark bg-opacity-50 rounded p-3'>
+                <h2>{captions[index].title}</h2>
+                <p>{captions[index].text}</p>
+                <Button as={Link} to='/appointments' variant='light'>
+                  Book Now
+                </Button>
+              </Carousel.Caption>
+            </Carousel.Item>
+          )
+        })}
       </Carousel>
 
-      {/* Services Section */}
+      {/* ================= SERVICES SECTION ================= */}
       <Container className='my-5'>
-        <h2 className='text-center mb-4'>Explore Our Services</h2>
-        <Row className='g-4'>
-          <Col md={3} xs={12}>
+        <h2 className='text-center mb-4 fw-bold'>Explore Our Services</h2>
+        <Row className='g-4 justify-content-center'>
+          <Col lg={3} md={6} sm={12}>
             <Card className='text-center h-100 shadow-sm'>
               <Card.Body>
                 <Card.Title>Services</Card.Title>
@@ -145,7 +129,8 @@ export default function LandingPage () {
               </Card.Body>
             </Card>
           </Col>
-          <Col md={3} xs={12}>
+
+          <Col lg={3} md={6} sm={12}>
             <Card className='text-center h-100 shadow-sm'>
               <Card.Body>
                 <Card.Title>Blog</Card.Title>
@@ -156,23 +141,25 @@ export default function LandingPage () {
               </Card.Body>
             </Card>
           </Col>
-          <Col md={3} xs={12}>
+
+          <Col lg={3} md={6} sm={12}>
             <Card className='text-center h-100 shadow-sm'>
               <Card.Body>
                 <Card.Title>Appointments</Card.Title>
                 <Card.Text>Schedule your sessions online.</Card.Text>
-                <Button as={Link} to='/book' variant='primary'>
+                <Button as={Link} to='/appointments' variant='primary'>
                   Book Now
                 </Button>
               </Card.Body>
             </Card>
           </Col>
-          <Col md={3} xs={12}>
+
+          <Col lg={3} md={6} sm={12}>
             <Card className='text-center h-100 shadow-sm'>
               <Card.Body>
                 <Card.Title>Contact</Card.Title>
                 <Card.Text>Have questions? Reach out to us.</Card.Text>
-                <Button as={Link} to='/contact' variant='primary'>
+                <Button variant='primary' onClick={scrollToFooter}>
                   Contact Us
                 </Button>
               </Card.Body>
@@ -181,9 +168,9 @@ export default function LandingPage () {
         </Row>
       </Container>
 
-      {/* Testimonials Section */}
+      {/* ================= TESTIMONIALS SECTION ================= */}
       <Container className='my-5'>
-        <h2 className='text-center mb-4'>What Our Patients Say</h2>
+        <h2 className='text-center mb-4 fw-bold'>What Our Patients Say</h2>
 
         {loading ? (
           <div className='text-center py-4'>
@@ -192,7 +179,7 @@ export default function LandingPage () {
         ) : testimonials.length === 0 ? (
           <p className='text-center text-muted'>No testimonials yet.</p>
         ) : (
-          <Carousel interval={4000} indicators={false} fade className='p-3'>
+          <Carousel interval={5000} indicators={false} fade>
             {testimonials.map(t => {
               const { short, trimmed } = trimText(t.message)
               const isExpanded = expanded === t.id
@@ -205,10 +192,10 @@ export default function LandingPage () {
                 <Carousel.Item key={t.id}>
                   <div className='d-flex justify-content-center'>
                     <Card
-                      className='shadow-lg border-0'
+                      className='shadow-lg border-0 w-100'
                       style={{
-                        width: '80%',
-                        minHeight: '300px',
+                        maxWidth: '800px',
+                        minHeight: '320px',
                         background: '#f9fbff',
                         borderRadius: '18px'
                       }}
@@ -216,14 +203,14 @@ export default function LandingPage () {
                       <div className='text-center mt-3'>
                         <FaHeartPulse
                           size={40}
-                          color='#007bff'
+                          color='#0d6efd'
                           className='mb-2'
                         />
                       </div>
                       <Card.Body>
-                        <Card.Title className='text-center'>
-                          {t.name} —{' '}
-                          <span className='text-muted'>{t.type}</span>
+                        <Card.Title className='text-center mb-3'>
+                          {t.name}{' '}
+                          <span className='text-muted'>— {t.type}</span>
                         </Card.Title>
                         <Card.Text style={{ textAlign: 'justify' }}>
                           {displayText}
@@ -257,22 +244,20 @@ export default function LandingPage () {
         )}
       </Container>
 
-      {/* Call to Action */}
+      {/* ================= CALL TO ACTION ================= */}
       <div
-        style={{
-          background: '#0d6efd',
-          color: '#fff',
-          padding: '50px 0',
-          textAlign: 'center'
-        }}
+        className='text-center py-5'
+        style={{ background: '#0d6efd', color: '#fff' }}
       >
-        <h2>Start Your Journey to Better Health Today!</h2>
+        <h2 className='mb-4 fw-bold'>
+          Start Your Journey to Better Health Today!
+        </h2>
         <Button as={Link} to='/services' variant='light' size='lg'>
           View Our Services
         </Button>
       </div>
 
-      {/* Footer */}
+      {/* ================= FOOTER ================= */}
       <Footer />
     </div>
   )

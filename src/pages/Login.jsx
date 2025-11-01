@@ -152,7 +152,7 @@ export default function Login () {
 
               <div className='text-center'>
                 <p className='mb-0 text-muted'>
-                  Don’t have an account? <Link to='/signup'>Sign Up</Link>
+                  Don’t have an account? <Link to='/services'>Register in our services page</Link>
                 </p>
               </div>
             </Card.Body>

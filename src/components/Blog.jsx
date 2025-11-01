@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Container, Row, Col, Card, Button, Form, Alert } from 'react-bootstrap'
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Button,
+  Form,
+  Alert,
+  Badge
+} from 'react-bootstrap'
 import {
   collection,
   getDocs,
@@ -7,12 +16,15 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
-  increment
+  increment,
+  query,
+  orderBy
 } from 'firebase/firestore'
 import { db } from '../utilities/firebase'
 import DOMPurify from 'dompurify'
-import { FaHeart, FaShareAlt } from 'react-icons/fa'
+import { FaHeart, FaShareAlt, FaCalendarAlt } from 'react-icons/fa'
 import Footer from '../components/Footer'
+import dayjs from 'dayjs'
 import './blogs.css'
 
 export default function Blog () {
@@ -26,12 +38,13 @@ export default function Blog () {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
-  // Fetch blogs
+  // ✅ Fetch blogs ordered by newest first
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const blogCollection = collection(db, 'blogs')
-        const snapshot = await getDocs(blogCollection)
+        const q = query(blogCollection, orderBy('createdAt', 'desc'))
+        const snapshot = await getDocs(q)
         const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
         setBlogs(list)
       } catch (err) {
@@ -132,10 +145,29 @@ export default function Blog () {
                   )}
                   <Card.Body className='d-flex flex-column justify-content-between'>
                     <div>
-                      <Card.Title className='fw-bold text-center mb-3'>
-                        {blog.title}
-                      </Card.Title>
+                      {/* ====== Blog Title ====== */}
+                      <div className='d-flex justify-content-between align-items-center flex-wrap mb-2'>
+                        <Card.Title className='fw-bold text-center flex-grow-1 mb-2'>
+                          {blog.title}
+                        </Card.Title>
 
+                        {/* ====== Date Badge ====== */}
+                        {blog.createdAt && (
+                          <Badge
+                            bg='primary'
+                            pill
+                            className='ms-auto text-light d-flex align-items-center gap-1'
+                            style={{ fontSize: '0.8rem' }}
+                          >
+                            <FaCalendarAlt size={12} />
+                            {dayjs(blog.createdAt.toDate()).format(
+                              'DD MMM YYYY'
+                            )}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* ====== Blog Content / Preview ====== */}
                       <Card.Text
                         className='blog-preview-text'
                         dangerouslySetInnerHTML={{
@@ -239,6 +271,7 @@ export default function Blog () {
           )}
         </Row>
       </Container>
+
       <Footer />
     </>
   )
