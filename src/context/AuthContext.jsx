@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { auth, db } from '../utilities/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
+import { onAuthStateChanged, getIdTokenResult } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 
 const AuthContext = createContext()
@@ -14,9 +14,15 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async currentUser => {
       if (currentUser) {
         try {
+          // Fetch role from Firestore
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
-          const role = userDoc.exists() ? userDoc.data().role : 'user'
-          setUser({ ...currentUser, role })
+          const firestoreRole = userDoc.exists() ? userDoc.data().role : 'user'
+
+          // Fetch custom claims (Admin SDK roles)
+          const tokenResult = await getIdTokenResult(currentUser)
+          const customClaimRole = tokenResult.claims.role || firestoreRole
+
+          setUser({ ...currentUser, role: customClaimRole })
         } catch (error) {
           console.error('Error fetching user role:', error)
           setUser({ ...currentUser, role: 'user' })
@@ -37,6 +43,4 @@ export const AuthProvider = ({ children }) => {
   )
 }
 
-// Custom hook
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext)
