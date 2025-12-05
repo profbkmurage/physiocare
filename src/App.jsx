@@ -13,6 +13,7 @@ import CustomNavbar from './components/Navbar'
 import LandingPage from './pages/LandingPage'
 import Services from './components/Services'
 import Blog from './components/Blog'
+import SingleBlog from './pages/SingleBlog.jsx'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Appointments from './components/Appointments'
@@ -57,7 +58,9 @@ function AppContent () {
         <Route path='/services' element={<Services />} />
         <Route path='/blog' element={<Blog />} />
         <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<Register/>} />
+        <Route path='/register' element={<Register />} />
+        <Route path='/blog' element={<Blog />} />
+        <Route path='/blog/:id' element={<SingleBlog />} />
         {/* Protected user route */}
         <Route
           path='/appointments'
