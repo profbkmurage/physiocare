@@ -152,7 +152,6 @@ h2.fw-bold {
     }
 }
 
-.bton-primary {
-    color: red;
-    background-color: green;
+.text-primary{
+    color: white;
 }

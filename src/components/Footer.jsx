@@ -60,7 +60,8 @@ export default function Footer () {
               every step toward healing counts.
             </p>
 
-            <div className='mt-3'>
+            <div className='mt-3' style={
+              { color: 'white' }}>
               <p className='mb-1'>
                 <FaMapMarkerAlt className='me-2 text-primary' /> Gigiri,
                 Nairobi, Kenya
@@ -73,7 +74,7 @@ export default function Footer () {
               </p>
             </div>
 
-            <div className='d-flex gap-3 mt-3'>
+            <div className='d-flex gap-3 mt-3'style={{color:'#0d6efd'}}>
               <a
                 href='https://facebook.com'
                 target='_blank'
