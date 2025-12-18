@@ -1,10 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Container, Row, Col, Card, Button, Form, Alert } from 'react-bootstrap'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  onSnapshot
+} from 'firebase/firestore'
 import { db } from '../utilities/firebase'
 import Footer from '../components/Footer'
 
+// ✅ Import animation styles
+import '../styles/team.css'
+
 export default function Services () {
+  // ================= CLIENT FORM =================
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,9 +23,27 @@ export default function Services () {
     password: '',
     confirmPassword: ''
   })
+
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
+  // ================= TEAM DATA =================
+  const [team, setTeam] = useState([])
+
+  // ================= FETCH TEAM (REALTIME) =================
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'team'), snapshot => {
+      const members = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      setTeam(members)
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  // ================= FORM HANDLERS =================
   const handleChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
@@ -31,6 +58,7 @@ export default function Services () {
 
     const { name, email, age, phone, location, password, confirmPassword } =
       formData
+
     if (!validatePhone(phone)) {
       setError('Phone number must be in the format 2547XXXXXXXX.')
       return
@@ -53,9 +81,10 @@ export default function Services () {
         age,
         phone,
         location,
-        password, // Future: hash or use Firebase Auth
+        password, // 🔒 Future: move to Firebase Auth
         createdAt: serverTimestamp()
       })
+
       setSubmitted(true)
       setFormData({
         name: '',
@@ -74,7 +103,7 @@ export default function Services () {
 
   return (
     <>
-      {/* Hero Section */}
+      {/* ================= HERO ================= */}
       <div
         style={{
           background: '#0d6efd',
@@ -86,49 +115,82 @@ export default function Services () {
         <Container>
           <h1 className='fw-bold'>Our Physiotherapy Services</h1>
           <p className='lead'>
-            Explore the full range of preventive and therapeutic physiotherapy
-            care designed to restore and maintain your health.
+            Professional care designed to restore movement, relieve pain, and
+            improve quality of life.
           </p>
         </Container>
       </div>
 
-      {/* Services Section */}
+      {/* ================= TEAM SECTION ================= */}
+      {team.length > 0 && (
+        <Container className='my-5'>
+          <h2 className='text-center mb-4 fw-bold'>Meet Our Team</h2>
+          <Row className='g-4 justify-content-center'>
+            {team.map((member, index) => (
+              <Col xs={12} md={6} lg={3} key={member.id}>
+                <Card
+                  className='text-center shadow-sm h-100 team-card fade-in'
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className='d-flex justify-content-center mt-4'>
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className='team-img'
+                    />
+                  </div>
+
+                  <Card.Body>
+                    <Card.Title className='mt-3'>{member.name}</Card.Title>
+                    <Card.Subtitle className='mb-2 text-muted'>
+                      {member.role}
+                    </Card.Subtitle>
+                    <Card.Text>{member.bio}</Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Container>
+      )}
+
+      {/* ================= SERVICES ================= */}
       <Container className='my-5'>
         <h2 className='text-center mb-4 fw-bold'>What We Offer</h2>
         <Row className='g-4'>
           {[
             {
               title: 'Preventive Physiotherapy',
-              desc: 'Stay healthy with posture correction, ergonomic advice, and early detection programs.',
+              desc: 'Posture correction, ergonomic training, and injury prevention.',
               icon: 'bi-heart-pulse'
             },
             {
-              title: 'Curative & Therapeutic Care',
-              desc: 'Comprehensive recovery programs for back pain, muscle strain, and joint conditions.',
+              title: 'Therapeutic Care',
+              desc: 'Back pain, joint conditions, and muscle rehabilitation.',
               icon: 'bi-capsule'
             },
             {
               title: 'Rehabilitation Programs',
-              desc: 'Post-surgery and injury rehabilitation to help you regain full mobility.',
+              desc: 'Post-surgery and injury recovery plans.',
               icon: 'bi-person-walking'
             },
             {
               title: 'Pain Management',
-              desc: 'Personalized plans to relieve chronic pain through non-invasive techniques.',
+              desc: 'Non-invasive solutions for chronic pain.',
               icon: 'bi-emoji-smile'
             },
             {
               title: 'Sports Physiotherapy',
-              desc: 'Specialized care for athletes to prevent injuries and enhance performance.',
+              desc: 'Athlete-focused injury care and performance recovery.',
               icon: 'bi-trophy'
             }
           ].map((service, idx) => (
             <Col xs={12} md={6} lg={4} key={idx}>
-              <Card className='h-100 shadow-sm text-center'>
-                <Card.Body className='d-flex flex-column align-items-center'>
+              <Card className='h-100 shadow-sm text reminder-center'>
+                <Card.Body className='text-center'>
                   <i
                     className={`${service.icon} display-5 text-primary mb-3`}
-                  ></i>
+                  />
                   <Card.Title>{service.title}</Card.Title>
                   <Card.Text>{service.desc}</Card.Text>
                 </Card.Body>
@@ -138,7 +200,7 @@ export default function Services () {
         </Row>
       </Container>
 
-      {/* Registration Form */}
+      {/* ================= REGISTRATION ================= */}
       <div style={{ background: '#f8f9fa', padding: '60px 0' }}>
         <Container>
           <h2 className='text-center mb-4 fw-bold'>Register as a New Client</h2>
@@ -148,81 +210,47 @@ export default function Services () {
                 <Alert variant='success'>Registration successful!</Alert>
               )}
               {error && <Alert variant='danger'>{error}</Alert>}
+
               <Card className='p-4 shadow-sm'>
                 <Form onSubmit={handleSubmit}>
                   <Row className='gy-3'>
+                    {[
+                      { name: 'name', type: 'text', placeholder: 'Full Name' },
+                      { name: 'email', type: 'email', placeholder: 'Email' },
+                      { name: 'age', type: 'number', placeholder: 'Age' },
+                      {
+                        name: 'phone',
+                        type: 'tel',
+                        placeholder: 'Phone (2547XXXXXXXX)'
+                      },
+                      {
+                        name: 'location',
+                        type: 'text',
+                        placeholder: 'Location'
+                      },
+                      {
+                        name: 'password',
+                        type: 'password',
+                        placeholder: 'Password'
+                      },
+                      {
+                        name: 'confirmPassword',
+                        type: 'password',
+                        placeholder: 'Confirm Password'
+                      }
+                    ].map((field, i) => (
+                      <Col xs={12} md={i >= 2 ? 6 : 12} key={i}>
+                        <Form.Control
+                          {...field}
+                          value={formData[field.name]}
+                          onChange={handleChange}
+                          required
+                        />
+                      </Col>
+                    ))}
+
                     <Col xs={12}>
-                      <Form.Control
-                        type='text'
-                        name='name'
-                        placeholder='Full Name '
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                      />
-                    </Col>
-                    <Col xs={12}>
-                      <Form.Control
-                        type='email'
-                        name='email'
-                        placeholder='Email'
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                      />
-                    </Col>
-                    <Col xs={12} md={6}>
-                      <Form.Control
-                        type='number'
-                        name='age'
-                        placeholder='Age'
-                        value={formData.age}
-                        onChange={handleChange}
-                        required
-                      />
-                    </Col>
-                    <Col xs={12} md={6}>
-                      <Form.Control
-                        type='tel'
-                        name='phone'
-                        placeholder='Phone (2547XXXXXXXX)'
-                        value={formData.phone}
-                        onChange={handleChange}
-                        required
-                      />
-                    </Col>
-                    <Col xs={12}>
-                      <Form.Control
-                        type='text'
-                        name='location'
-                        placeholder='Location'
-                        value={formData.location}
-                        onChange={handleChange}
-                        required
-                      />
-                    </Col>
-                    <Col xs={12} md={6}>
-                      <Form.Control
-                        type='password'
-                        name='password'
-                        placeholder='Password (min 6 chars)'
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                      />
-                    </Col>
-                    <Col xs={12} md={6}>
-                      <Form.Control
-                        type='password'
-                        name='confirmPassword'
-                        placeholder='Confirm Password'
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        required
-                      />
-                    </Col>
-                    <Col xs={12}>
-                      <Button type='submit' variant='primary' className='w-100'>
+                      <Button type='submit' className='w-100'>
                         Register
                       </Button>
                     </Col>
@@ -234,7 +262,6 @@ export default function Services () {
         </Container>
       </div>
 
-      {/* Footer */}
       <Footer />
     </>
   )

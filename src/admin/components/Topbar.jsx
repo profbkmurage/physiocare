@@ -11,7 +11,8 @@ import {
   FaCalendarAlt,
   FaEnvelope,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaUserTie
 } from 'react-icons/fa'
 
 export default function Topbar () {
@@ -19,9 +20,11 @@ export default function Topbar () {
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  // 🔹 Admin navigation links
   const links = [
     { path: '/admin/dashboard', name: 'Overview', icon: <FaHome /> },
     { path: '/admin/clients', name: 'Clients', icon: <FaUsers /> },
+    { path: '/admin/team', name: 'Team', icon: <FaUserTie /> }, // ✅ TEAM ADDED
     { path: '/admin/blogs', name: 'Blogs', icon: <FaBook /> },
     {
       path: '/admin/appointments',
@@ -40,6 +43,7 @@ export default function Topbar () {
 
   return (
     <>
+      {/* ================= TOP BAR ================= */}
       <div
         className='topbar d-flex align-items-center justify-content-between px-3 shadow-sm'
         style={{
@@ -74,7 +78,10 @@ export default function Topbar () {
                   ? 'bg-light bg-opacity-25 rounded'
                   : ''
               }`}
-              style={{ transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+              style={{
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
             >
               <span className='me-1'>{link.icon}</span>
               <span>{link.name}</span>
@@ -90,14 +97,17 @@ export default function Topbar () {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* ================= MOBILE MENU ================= */}
       {mobileOpen && (
         <>
+          {/* Overlay */}
           <div
             className='position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-md-none'
             onClick={toggleMobile}
             style={{ zIndex: 1048 }}
           />
+
+          {/* Drawer */}
           <div
             className='position-fixed top-0 start-0 w-75 bg-primary text-white d-flex flex-column p-3 d-md-none'
             style={{ height: '100vh', zIndex: 1049 }}
@@ -119,13 +129,6 @@ export default function Topbar () {
                 <span>{link.name}</span>
               </Nav.Link>
             ))}
-            <Button
-              variant='outline-light'
-              className='mt-auto'
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
           </div>
         </>
       )}
@@ -133,8 +136,7 @@ export default function Topbar () {
   )
 }
 
-// PropTypes
+// PropTypes (future-proofing)
 Topbar.propTypes = {
-  // Optional callback when mobile menu is toggled
   onToggleMobile: PropTypes.func
 }

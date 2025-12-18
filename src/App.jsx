@@ -6,33 +6,34 @@ import {
 } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 
-// Components
+// ================= COMPONENTS =================
 import CustomNavbar from './components/Navbar'
 
-// User Pages
+// ================= USER PAGES =================
 import LandingPage from './pages/LandingPage'
 import Services from './components/Services'
 import Blog from './components/Blog'
-import SingleBlog from './pages/SingleBlog.jsx'
+import SingleBlog from './pages/SingleBlog'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Appointments from './components/Appointments'
 
-// Admin Pages
+// ================= ADMIN PAGES =================
 import AdminDashboard from './admin/AdminDashboard'
 import BlogsAdmin from './admin/pages/BlogsAdmin'
 import AppointmentsAdmin from './admin/pages/AppointmentsAdmin'
 import ContactsAdmin from './admin/pages/ContactsAdmin'
 import ClientsAdmin from './admin/pages/ClientsAdmin'
+import AdminTeam from './admin/pages/AdminTeam' // ✅ TEAM PAGE
 
-// Admin Layout
+// ================= ADMIN LAYOUT =================
 import AdminTopbar from './admin/components/Topbar'
 import AdminRoute from './admin/utils/AdminRoutes'
 
-// Private route for normal users
+// ================= AUTH =================
 import PrivateRoute from './context/PrivateRoute'
 
-// ---------------- Admin Layout wrapper ----------------
+// ================= ADMIN LAYOUT WRAPPER =================
 // eslint-disable-next-line react/prop-types
 const AdminLayout = ({ children }) => (
   <div className='d-flex' style={{ minHeight: '100vh' }}>
@@ -43,25 +44,26 @@ const AdminLayout = ({ children }) => (
   </div>
 )
 
-// ---------------- App Content: switches layout ----------------
+// ================= APP CONTENT =================
 function AppContent () {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
 
   return (
     <>
+      {/* Show public navbar only on non-admin routes */}
       {!isAdminRoute && <CustomNavbar />}
 
       <Routes>
-        {/* Public routes */}
+        {/* ======== PUBLIC ROUTES ======== */}
         <Route path='/' element={<LandingPage />} />
         <Route path='/services' element={<Services />} />
         <Route path='/blog' element={<Blog />} />
+        <Route path='/blog/:id' element={<SingleBlog />} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
-        <Route path='/blog' element={<Blog />} />
-        <Route path='/blog/:id' element={<SingleBlog />} />
-        {/* Protected user route */}
+
+        {/* ======== PROTECTED USER ROUTE ======== */}
         <Route
           path='/appointments'
           element={
@@ -70,7 +72,8 @@ function AppContent () {
             </PrivateRoute>
           }
         />
-        {/* Admin routes */}
+
+        {/* ======== ADMIN ROUTES (ADMIN ONLY) ======== */}
         <Route
           path='/admin/dashboard'
           element={
@@ -81,6 +84,7 @@ function AppContent () {
             </AdminRoute>
           }
         />
+
         <Route
           path='/admin/blogs'
           element={
@@ -91,6 +95,7 @@ function AppContent () {
             </AdminRoute>
           }
         />
+
         <Route
           path='/admin/appointments'
           element={
@@ -101,7 +106,7 @@ function AppContent () {
             </AdminRoute>
           }
         />
-        ;
+
         <Route
           path='/admin/contacts'
           element={
@@ -112,7 +117,7 @@ function AppContent () {
             </AdminRoute>
           }
         />
-        ;
+
         <Route
           path='/admin/clients'
           element={
@@ -123,12 +128,24 @@ function AppContent () {
             </AdminRoute>
           }
         />
+
+        {/* ✅ ADMIN TEAM ROUTE (ADMIN ONLY) */}
+        <Route
+          path='/admin/team'
+          element={
+            <AdminRoute>
+              <AdminLayout>
+                <AdminTeam />
+              </AdminLayout>
+            </AdminRoute>
+          }
+        />
       </Routes>
     </>
   )
 }
 
-// ---------------- Root Wrapper ----------------
+// ================= ROOT =================
 function App () {
   return (
     <AuthProvider>
