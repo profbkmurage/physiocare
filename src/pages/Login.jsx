@@ -17,11 +17,12 @@ export default function Login () {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  // Email/Password login
+  // ================= EMAIL / PASSWORD LOGIN =================
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
     setLoading(true)
+
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -48,21 +49,20 @@ export default function Login () {
     }
   }
 
-  // Google Login
+  // ================= GOOGLE LOGIN =================
   const handleGoogleLogin = async () => {
     setError('')
     setLoading(true)
+
     try {
       const provider = new GoogleAuthProvider()
       const result = await signInWithPopup(auth, provider)
       const user = result.user
 
-      // Check Firestore user data
       const userRef = doc(db, 'users', user.uid)
       const userSnap = await getDoc(userRef)
 
       if (!userSnap.exists()) {
-        // Create new user with default role "user"
         await setDoc(userRef, {
           name: user.displayName || '',
           email: user.email,
@@ -114,7 +114,7 @@ export default function Login () {
                   />
                 </Form.Group>
 
-                <Form.Group className='mb-3'>
+                <Form.Group className='mb-2'>
                   <Form.Label>
                     <FaLock className='me-2' /> Password
                   </Form.Label>
@@ -126,6 +126,16 @@ export default function Login () {
                     placeholder='Enter password'
                   />
                 </Form.Group>
+
+                {/* 🔐 RESET PASSWORD LINK */}
+                <div className='text-end mb-3'>
+                  <Link
+                    to='/reset-password'
+                    style={{ fontSize: '0.9rem', textDecoration: 'none' }}
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
 
                 <Button
                   type='submit'
@@ -152,7 +162,8 @@ export default function Login () {
 
               <div className='text-center'>
                 <p className='mb-0 text-muted'>
-                  Don’t have an account? <Link to='/services'>Register in our services page</Link>
+                  Don’t have an account?{' '}
+                  <Link to='/services'>Register in our services page</Link>
                 </p>
               </div>
             </Card.Body>

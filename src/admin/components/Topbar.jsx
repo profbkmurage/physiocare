@@ -12,7 +12,8 @@ import {
   FaEnvelope,
   FaBars,
   FaTimes,
-  FaUserTie
+  FaUserTie,
+  FaKey
 } from 'react-icons/fa'
 
 export default function Topbar () {
@@ -24,7 +25,7 @@ export default function Topbar () {
   const links = [
     { path: '/admin/dashboard', name: 'Overview', icon: <FaHome /> },
     { path: '/admin/clients', name: 'Clients', icon: <FaUsers /> },
-    { path: '/admin/team', name: 'Team', icon: <FaUserTie /> }, // ✅ TEAM ADDED
+    { path: '/admin/team', name: 'Team', icon: <FaUserTie /> },
     { path: '/admin/blogs', name: 'Blogs', icon: <FaBook /> },
     {
       path: '/admin/appointments',
@@ -54,7 +55,7 @@ export default function Topbar () {
           zIndex: 1050
         }}
       >
-        {/* Left: Hamburger + Branding */}
+        {/* Left */}
         <div className='d-flex align-items-center'>
           <button
             className='btn btn-link text-white fs-4 d-md-none me-2'
@@ -78,10 +79,6 @@ export default function Topbar () {
                   ? 'bg-light bg-opacity-25 rounded'
                   : ''
               }`}
-              style={{
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap'
-              }}
             >
               <span className='me-1'>{link.icon}</span>
               <span>{link.name}</span>
@@ -89,8 +86,16 @@ export default function Topbar () {
           ))}
         </Nav>
 
-        {/* Right: Logout */}
-        <div className='d-flex align-items-center'>
+        {/* Right Buttons */}
+        <div className='d-flex align-items-center gap-2'>
+          <Button
+            variant='outline-light'
+            size='sm'
+            onClick={() => navigate('/change-password')}
+          >
+            <FaKey className='me-1' /> Change Password
+          </Button>
+
           <Button variant='outline-light' size='sm' onClick={handleLogout}>
             Logout
           </Button>
@@ -123,12 +128,30 @@ export default function Topbar () {
                     ? 'bg-light bg-opacity-25 rounded'
                     : ''
                 }`}
-                style={{ transition: 'all 0.2s' }}
               >
                 <span className='me-2'>{link.icon}</span>
                 <span>{link.name}</span>
               </Nav.Link>
             ))}
+
+            {/* 🔐 Change Password (Mobile) */}
+            <Nav.Link
+              as={Link}
+              to='/change-password'
+              onClick={toggleMobile}
+              className='text-white d-flex align-items-center px-2 py-2 mt-3 border-top'
+            >
+              <FaKey className='me-2' />
+              Change Password
+            </Nav.Link>
+
+            {/* Logout (Mobile) */}
+            <Nav.Link
+              onClick={handleLogout}
+              className='text-white d-flex align-items-center px-2 py-2 mt-2'
+            >
+              Logout
+            </Nav.Link>
           </div>
         </>
       )}
@@ -136,7 +159,6 @@ export default function Topbar () {
   )
 }
 
-// PropTypes (future-proofing)
 Topbar.propTypes = {
   onToggleMobile: PropTypes.func
 }

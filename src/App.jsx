@@ -5,6 +5,8 @@ import {
   useLocation
 } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import ResetPassword from './pages/ResetPassword'
+import ChangePassword from'./pages/ChangePassword'
 
 // ================= COMPONENTS =================
 import CustomNavbar from './components/Navbar'
@@ -62,6 +64,8 @@ function AppContent () {
         <Route path='/blog/:id' element={<SingleBlog />} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
+;<Route path='/change-password' element={<ChangePassword />} />
 
         {/* ======== PROTECTED USER ROUTE ======== */}
         <Route

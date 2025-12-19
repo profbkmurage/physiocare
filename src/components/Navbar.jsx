@@ -11,7 +11,8 @@ import {
   FaSignInAlt,
   FaSignOutAlt,
   FaHeartbeat,
-  FaBookMedical
+  FaBookMedical,
+  FaKey
 } from 'react-icons/fa'
 
 export default function CustomNavbar () {
@@ -45,10 +46,11 @@ export default function CustomNavbar () {
           <FaHeartbeat className='me-2' /> PhysioCare — Dr. Jasmine Gatiba
         </Navbar.Brand>
 
-        {/* Hamburger toggle for mobile */}
+        {/* Mobile toggle */}
         <Navbar.Toggle aria-controls='basic-navbar-nav' className='border-0' />
 
         <Navbar.Collapse id='basic-navbar-nav'>
+          {/* Left links */}
           <Nav className='me-auto flex-column flex-lg-row'>
             <Nav.Link
               as={Link}
@@ -57,6 +59,7 @@ export default function CustomNavbar () {
             >
               <FaHome className='me-1' /> Home
             </Nav.Link>
+
             <Nav.Link
               as={Link}
               to='/services'
@@ -64,6 +67,7 @@ export default function CustomNavbar () {
             >
               <FaBookMedical className='me-1' /> Services
             </Nav.Link>
+
             <Nav.Link
               as={Link}
               to='/blog'
@@ -71,6 +75,7 @@ export default function CustomNavbar () {
             >
               <FaBlog className='me-1' /> Blog
             </Nav.Link>
+
             {user && (
               <Nav.Link
                 as={Link}
@@ -82,27 +87,40 @@ export default function CustomNavbar () {
             )}
           </Nav>
 
-          <Nav className='flex-column flex-lg-row mt-2 mt-lg-0'>
+          {/* Right buttons */}
+          <Nav className='flex-column flex-lg-row mt-2 mt-lg-0 gap-2'>
             {user ? (
-              <Button
-                variant='outline-light'
-                onClick={handleLogout}
-                className='fw-bold d-flex align-items-center mb-2 mb-lg-0'
-                style={{ whiteSpace: 'nowrap' }}
-              >
-                <FaSignOutAlt className='me-1' /> Logout
-              </Button>
+              <>
+                <Button
+                  variant='outline-light'
+                  onClick={() => navigate('/change-password')}
+                  className='fw-bold d-flex align-items-center mb-2 mb-lg-0'
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  <FaKey className='me-1' /> Change Password
+                </Button>
+
+                <Button
+                  variant='outline-light'
+                  onClick={handleLogout}
+                  className='fw-bold d-flex align-items-center mb-2 mb-lg-0'
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  <FaSignOutAlt className='me-1' /> Logout
+                </Button>
+              </>
             ) : (
               <>
                 <Button
                   variant='outline-light'
                   as={Link}
                   to='/login'
-                  className='me-2 fw-bold d-flex align-items-center mb-2 mb-lg-0'
+                  className='fw-bold d-flex align-items-center mb-2 mb-lg-0'
                   style={{ whiteSpace: 'nowrap' }}
                 >
                   <FaSignInAlt className='me-1' /> Login
                 </Button>
+
                 <Button
                   variant='light'
                   as={Link}
